@@ -14,6 +14,10 @@
     h1 { font-size: 24px; color: #333; }
     input { width: 100%; padding: 12px; margin: 8px 0 16px 0; border: 2px solid #e0e0e0; border-radius: 8px; }
     button { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    .password-container { position: relative; }
+    .password-container input { padding-right: 40px; }
+    .show-pwd-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #667eea; cursor: pointer; font-size: 18px; width: auto; padding: 0; margin: 0; }
+    .pwd-row { display: flex; align-items: center; gap: 8px; margin: 8px 0 16px 0; }
     button:hover { background: #5568d3; }
     .link { color: #667eea; cursor: pointer; text-decoration: underline; font-size: 14px; }
     .error { color: red; font-size: 12px; }
@@ -33,10 +37,27 @@
       <label>Email</label>
       <input type="email" id="loginEmail">
       <label>Password</label>
-      <input type="password" id="loginPassword">
+      <div class="password-container">
+        <input type="password" id="loginPassword">
+        <button class="show-pwd-btn" onclick="app.togglePassword('loginPassword')" type="button">👁️</button>
+      </div>
       <button onclick="app.login()">Sign In</button>
       <p style="text-align: center; margin-top: 15px; font-size: 14px;">No account? <span class="link" onclick="app.show('signup')">Sign Up</span></p>
+      <p style="text-align: center; margin-top: 10px; font-size: 14px;"><span class="link" onclick="app.show('forgot')">Forgot Password?</span></p>
       <div id="loginError" class="error"></div>
+    </div>
+
+    <!-- Forgot Password -->
+    <div class="screen" id="forgot">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 36px; margin-bottom: 10px;">📡 Roger</h1>
+        <p style="color: #666;">Reset Password</p>
+      </div>
+      <label>Enter your email</label>
+      <input type="email" id="forgotEmail">
+      <button onclick="app.forgotPassword()">Send Reset Link</button>
+      <p style="text-align: center; margin-top: 15px; font-size: 14px;">Back to <span class="link" onclick="app.show('login')">Sign In</span></p>
+      <div id="forgotError" class="error"></div>
     </div>
 
     <!-- Signup -->
@@ -50,7 +71,10 @@
       <label>Email</label>
       <input type="email" id="signupEmail">
       <label>Password</label>
-      <input type="password" id="signupPassword">
+      <div class="password-container">
+        <input type="password" id="signupPassword">
+        <button class="show-pwd-btn" onclick="app.togglePassword('signupPassword')" type="button">👁️</button>
+      </div>
       <button onclick="app.signup()">Create Account</button>
       <p style="text-align: center; margin-top: 15px; font-size: 14px;">Have account? <span class="link" onclick="app.show('login')">Sign In</span></p>
       <div id="signupError" class="error"></div>
@@ -293,6 +317,65 @@
 
           this.chunks = [];
         };
+      },
+
+      togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field.type === 'password') {
+          field.type = 'text';
+        } else {
+          field.type = 'password';
+        }
+      },
+
+      async forgotPassword() {
+        const email = document.getElementById('forgotEmail').value;
+        const err = document.getElementById('forgotError');
+
+        if (!email) {
+          err.textContent = 'Enter your email';
+          return;
+        }
+
+        try {
+          const { error } = await this.sb.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin
+          });
+
+          if (error) throw error;
+
+          err.textContent = '';
+          alert('Password reset email sent! Check your inbox.');
+          this.show('login');
+        } catch (e) {
+          err.textContent = e.message;
+        }
+      },
+
+      async resetPassword() {
+        const password = document.getElementById('newPassword').value;
+        const confirm = document.getElementById('confirmPassword').value;
+        const err = document.getElementById('resetError');
+
+        if (!password || !confirm) {
+          err.textContent = 'Fill all fields';
+          return;
+        }
+
+        if (password !== confirm) {
+          err.textContent = 'Passwords do not match';
+          return;
+        }
+
+        try {
+          const { error } = await this.sb.auth.updateUser({ password });
+          if (error) throw error;
+
+          alert('Password reset successful! Sign in now.');
+          this.show('login');
+        } catch (e) {
+          err.textContent = e.message;
+        }
       },
 
       async checkAuth() {
