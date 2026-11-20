@@ -1,0 +1,17 @@
+{
+  "name": "roger-ptt-app",
+  "version": "1.0.0",
+  "description": "Roger - Push-to-Talk app for close friends",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 3000"
+  },
+  "keywords": [
+    "ptt",
+    "push-to-talk",
+    "voice",
+    "messaging"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
