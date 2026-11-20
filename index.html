@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Roger</title>
+  <title>Roger - Admin</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
@@ -14,97 +14,64 @@
     h1 { font-size: 24px; color: #333; }
     input { width: 100%; padding: 12px; margin: 8px 0 16px 0; border: 2px solid #e0e0e0; border-radius: 8px; }
     button { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; }
-    .password-container { position: relative; }
-    .password-container input { padding-right: 40px; }
-    .show-pwd-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #667eea; cursor: pointer; font-size: 18px; width: auto; padding: 0; margin: 0; }
-    .pwd-row { display: flex; align-items: center; gap: 8px; margin: 8px 0 16px 0; }
     button:hover { background: #5568d3; }
     .link { color: #667eea; cursor: pointer; text-decoration: underline; font-size: 14px; }
     .error { color: red; font-size: 12px; }
-    .friend-item { padding: 12px; background: #f5f5f5; border-radius: 8px; margin: 8px 0; cursor: pointer; }
-    .ptt-button { width: 120px; height: 120px; border-radius: 50%; background: #667eea; color: white; border: none; font-weight: bold; cursor: pointer; margin: 20px auto; display: flex; align-items: center; justify-content: center; }
-    .ptt-button.recording { background: #ff4444; }
+    .user-item { padding: 12px; background: #f5f5f5; border-radius: 8px; margin: 8px 0; }
+    .btn-small { width: auto; padding: 6px 12px; font-size: 12px; margin: 0 5px; }
+    h2 { font-size: 16px; margin: 20px 0 10px; color: #333; }
+    .password-container { position: relative; }
+    .password-container input { padding-right: 40px; }
+    .show-pwd-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #667eea; cursor: pointer; font-size: 18px; width: auto; padding: 0; margin: 0; }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Login -->
+    <!-- Login Screen -->
     <div class="screen active" id="login">
       <div style="text-align: center; margin-bottom: 30px;">
         <h1 style="font-size: 36px; margin-bottom: 10px;">📡 Roger</h1>
-        <p style="color: #666;">Push-to-Talk for friends</p>
+        <p style="color: #666;">Admin Login</p>
       </div>
       <label>Email</label>
-      <input type="email" id="loginEmail">
+      <input type="email" id="loginEmail" placeholder="admin@roger.app">
       <label>Password</label>
       <div class="password-container">
-        <input type="password" id="loginPassword">
+        <input type="password" id="loginPassword" placeholder="••••••••">
         <button class="show-pwd-btn" onclick="app.togglePassword('loginPassword')" type="button">👁️</button>
       </div>
       <button onclick="app.login()">Sign In</button>
-      <p style="text-align: center; margin-top: 15px; font-size: 14px;">No account? <span class="link" onclick="app.show('signup')">Sign Up</span></p>
-      <p style="text-align: center; margin-top: 10px; font-size: 14px;"><span class="link" onclick="app.show('forgot')">Forgot Password?</span></p>
+      <p style="text-align: center; margin-top: 15px; font-size: 14px;">
+        <span class="link" onclick="app.show('reset')">Reset Password</span>
+      </p>
       <div id="loginError" class="error"></div>
     </div>
 
-    <!-- Forgot Password -->
-    <div class="screen" id="forgot">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="font-size: 36px; margin-bottom: 10px;">📡 Roger</h1>
-        <p style="color: #666;">Reset Password</p>
-      </div>
-      <label>Enter your email</label>
-      <input type="email" id="forgotEmail">
-      <button onclick="app.forgotPassword()">Send Reset Link</button>
-      <p style="text-align: center; margin-top: 15px; font-size: 14px;">Back to <span class="link" onclick="app.show('login')">Sign In</span></p>
-      <div id="forgotError" class="error"></div>
-    </div>
-
-    <!-- Signup -->
-    <div class="screen" id="signup">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="font-size: 36px; margin-bottom: 10px;">📡 Roger</h1>
-        <p style="color: #666;">Create Account</p>
-      </div>
-      <label>Username</label>
-      <input type="text" id="signupUsername">
-      <label>Email</label>
-      <input type="email" id="signupEmail">
-      <label>Password</label>
-      <div class="password-container">
-        <input type="password" id="signupPassword">
-        <button class="show-pwd-btn" onclick="app.togglePassword('signupPassword')" type="button">👁️</button>
-      </div>
-      <button onclick="app.signup()">Create Account</button>
-      <p style="text-align: center; margin-top: 15px; font-size: 14px;">Have account? <span class="link" onclick="app.show('login')">Sign In</span></p>
-      <div id="signupError" class="error"></div>
-    </div>
-
-    <!-- Chat -->
-    <div class="screen" id="chat">
+    <!-- Admin Panel -->
+    <div class="screen" id="admin">
       <div class="header">
-        <h1>📡 Roger</h1>
+        <h1>📡 Admin Panel</h1>
         <button style="background: #ff4444; padding: 8px 12px; width: auto;" onclick="app.logout()">Logout</button>
       </div>
-      
-      <h2 style="font-size: 16px; margin: 20px 0 10px;">Friends</h2>
-      <div id="friendsList"></div>
-      
-      <div style="margin: 20px 0; padding: 15px; border-top: 2px solid #e0e0e0;">
-        <label>Add Friend Email</label>
-        <div style="display: flex; gap: 8px;">
-          <input type="email" id="friendEmail" style="flex: 1; margin: 0;">
-          <button style="width: auto; margin: 0;" onclick="app.addFriend()">Add</button>
-        </div>
-        <div id="friendError" class="error"></div>
+
+      <!-- Create New User -->
+      <h2>Create New User</h2>
+      <div>
+        <label>Username</label>
+        <input type="text" id="newUsername" placeholder="username">
+        <label>Email</label>
+        <input type="email" id="newEmail" placeholder="user@example.com">
+        <label>Password</label>
+        <input type="password" id="newPassword" placeholder="••••••••">
+        <button onclick="app.createUser()">Create User</button>
+        <div id="createError" class="error"></div>
       </div>
 
-      <h2 style="font-size: 16px; margin: 20px 0 10px;">Messages</h2>
-      <div id="messagesList" style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; max-height: 300px; overflow-y: auto;">
-        <p style="color: #999; text-align: center;">No messages</p>
+      <!-- All Users -->
+      <h2 style="margin-top: 30px;">All Users</h2>
+      <div id="usersList" style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; max-height: 400px; overflow-y: auto;">
+        <p style="color: #999;">Loading...</p>
       </div>
-
-      <button class="ptt-button" id="pttBtn" onmousedown="app.recordStart()" onmouseup="app.recordStop()">🎙️<br>PUSH</button>
     </div>
   </div>
 
@@ -115,9 +82,6 @@
       sbKey: 'sb_publishable_3UmS4S4YDI1E-1T8D4yJNg_1vFtiDFV',
       sb: null,
       user: null,
-      friendId: null,
-      recorder: null,
-      chunks: [],
 
       init() {
         this.sb = window.supabase.createClient(this.sbUrl, this.sbKey);
@@ -129,31 +93,12 @@
         document.getElementById(screen).classList.add('active');
       },
 
-      async signup() {
-        const username = document.getElementById('signupUsername').value;
-        const email = document.getElementById('signupEmail').value;
-        const password = document.getElementById('signupPassword').value;
-        const err = document.getElementById('signupError');
-
-        if (!username || !email || !password) {
-          err.textContent = 'Fill all fields';
-          return;
-        }
-
-        try {
-          const { data, error } = await this.sb.auth.signUp({ email, password });
-          if (error) throw error;
-
-          await this.sb.from('users').insert({
-            id: data.user.id,
-            email,
-            username
-          });
-
-          alert('Account created! Sign in now.');
-          this.show('login');
-        } catch (e) {
-          err.textContent = e.message;
+      togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field.type === 'password') {
+          field.type = 'text';
+        } else {
+          field.type = 'password';
         }
       },
 
@@ -173,10 +118,14 @@
 
           this.user = data.user;
           const { data: profile } = await this.sb.from('users').select('*').eq('id', this.user.id).single();
-          this.user.username = profile.username;
+          
+          if (!profile?.is_admin) {
+            throw new Error('Not an admin account');
+          }
 
-          this.show('chat');
-          this.loadFriends();
+          this.user.username = profile.username;
+          this.show('admin');
+          this.loadAllUsers();
         } catch (e) {
           err.textContent = e.message;
         }
@@ -186,195 +135,63 @@
         await this.sb.auth.signOut();
         this.user = null;
         this.show('login');
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
       },
 
-      async loadFriends() {
-        try {
-          const { data } = await this.sb.from('friends')
-            .select('friend_id, users!friends_friend_id_fkey(username)')
-            .eq('user_id', this.user.id);
-
-          const list = document.getElementById('friendsList');
-          if (!data || data.length === 0) {
-            list.innerHTML = '<p style="color: #999; font-size: 12px;">No friends yet</p>';
-            return;
-          }
-
-          list.innerHTML = data.map(f => `
-            <div class="friend-item" onclick="app.selectFriend('${f.friend_id}', '${f.users.username}')">
-              ${f.users.username}
-            </div>
-          `).join('');
-        } catch (e) {
-          console.error(e);
-        }
-      },
-
-      selectFriend(id, name) {
-        this.friendId = id;
-        alert('Selected: ' + name);
-        this.loadMessages();
-      },
-
-      async addFriend() {
-        const email = document.getElementById('friendEmail').value;
-        const err = document.getElementById('friendError');
-
-        if (!email) {
-          err.textContent = 'Enter email';
-          return;
-        }
-
-        try {
-          const { data: friend } = await this.sb.from('users').select('id').eq('email', email).single();
-          if (!friend) throw new Error('User not found');
-
-          await this.sb.from('friends').insert({
-            user_id: this.user.id,
-            friend_id: friend.id
-          });
-
-          document.getElementById('friendEmail').value = '';
-          this.loadFriends();
-        } catch (e) {
-          err.textContent = e.message;
-        }
-      },
-
-      async loadMessages() {
-        if (!this.friendId) return;
-
-        try {
-          const { data } = await this.sb.from('messages')
-            .select('*, users!messages_sender_id_fkey(username)')
-            .or(`and(sender_id.eq.${this.user.id},receiver_id.eq.${this.friendId}),and(sender_id.eq.${this.friendId},receiver_id.eq.${this.user.id})`)
-            .order('created_at', { ascending: true });
-
-          const list = document.getElementById('messagesList');
-          if (!data || data.length === 0) {
-            list.innerHTML = '<p style="color: #999;">No messages</p>';
-            return;
-          }
-
-          list.innerHTML = data.map(m => `
-            <div style="margin-bottom: 10px; padding: 10px; background: #f5f5f5; border-radius: 8px;">
-              <div style="font-size: 12px; color: #667eea;">${m.users.username}</div>
-              <audio controls style="width: 100%; height: 32px; margin-top: 5px;" src="${this.sbUrl}/storage/v1/object/public/audio/${m.audio_url}"></audio>
-            </div>
-          `).join('');
-
-          list.scrollTop = list.scrollHeight;
-        } catch (e) {
-          console.error(e);
-        }
-      },
-
-      async recordStart() {
-        if (!this.friendId) {
-          alert('Select friend first');
-          return;
-        }
-
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          this.recorder = new MediaRecorder(stream);
-          this.chunks = [];
-          this.recorder.ondataavailable = (e) => this.chunks.push(e.data);
-          this.recorder.start();
-
-          document.getElementById('pttBtn').classList.add('recording');
-          document.getElementById('pttBtn').textContent = '🔴\nSTOP';
-        } catch (e) {
-          alert('Mic access denied');
-        }
-      },
-
-      async recordStop() {
-        if (!this.recorder) return;
-
-        this.recorder.stop();
-        this.recorder.onstop = async () => {
-          document.getElementById('pttBtn').classList.remove('recording');
-          document.getElementById('pttBtn').textContent = '🎙️\nPUSH';
-
-          const blob = new Blob(this.chunks, { type: 'audio/webm' });
-          const fileName = `${Date.now()}.webm`;
-
-          try {
-            await this.sb.storage.from('audio').upload(fileName, blob);
-
-            await this.sb.from('messages').insert({
-              sender_id: this.user.id,
-              receiver_id: this.friendId,
-              audio_url: fileName,
-              duration: Math.round(this.chunks.length / 10)
-            });
-
-            this.loadMessages();
-          } catch (e) {
-            alert('Upload failed: ' + e.message);
-          }
-
-          this.chunks = [];
-        };
-      },
-
-      togglePassword(fieldId) {
-        const field = document.getElementById(fieldId);
-        if (field.type === 'password') {
-          field.type = 'text';
-        } else {
-          field.type = 'password';
-        }
-      },
-
-      async forgotPassword() {
-        const email = document.getElementById('forgotEmail').value;
-        const err = document.getElementById('forgotError');
-
-        if (!email) {
-          err.textContent = 'Enter your email';
-          return;
-        }
-
-        try {
-          const { error } = await this.sb.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin
-          });
-
-          if (error) throw error;
-
-          err.textContent = '';
-          alert('Password reset email sent! Check your inbox.');
-          this.show('login');
-        } catch (e) {
-          err.textContent = e.message;
-        }
-      },
-
-      async resetPassword() {
+      async createUser() {
+        const username = document.getElementById('newUsername').value;
+        const email = document.getElementById('newEmail').value;
         const password = document.getElementById('newPassword').value;
-        const confirm = document.getElementById('confirmPassword').value;
-        const err = document.getElementById('resetError');
+        const err = document.getElementById('createError');
 
-        if (!password || !confirm) {
+        if (!username || !email || !password) {
           err.textContent = 'Fill all fields';
           return;
         }
 
-        if (password !== confirm) {
-          err.textContent = 'Passwords do not match';
-          return;
-        }
-
         try {
-          const { error } = await this.sb.auth.updateUser({ password });
+          const { data, error } = await this.sb.auth.signUp({ email, password });
           if (error) throw error;
 
-          alert('Password reset successful! Sign in now.');
-          this.show('login');
+          await this.sb.from('users').insert({
+            id: data.user.id,
+            email,
+            username,
+            is_admin: false
+          });
+
+          err.textContent = '';
+          alert('User created: ' + email);
+          document.getElementById('newUsername').value = '';
+          document.getElementById('newEmail').value = '';
+          document.getElementById('newPassword').value = '';
+          this.loadAllUsers();
         } catch (e) {
           err.textContent = e.message;
+        }
+      },
+
+      async loadAllUsers() {
+        try {
+          const { data } = await this.sb.from('users').select('*').order('created_at', { ascending: false });
+
+          const list = document.getElementById('usersList');
+          if (!data || data.length === 0) {
+            list.innerHTML = '<p style="color: #999;">No users found</p>';
+            return;
+          }
+
+          list.innerHTML = data.map(u => `
+            <div class="user-item">
+              <div style="font-weight: 600;">${u.username}</div>
+              <div style="font-size: 12px; color: #666;">${u.email}</div>
+              <div style="font-size: 11px; color: #999;">Admin: ${u.is_admin ? 'Yes' : 'No'}</div>
+              <div style="font-size: 10px; color: #bbb; margin-top: 5px;">ID: ${u.id.substring(0, 8)}...</div>
+            </div>
+          `).join('');
+        } catch (e) {
+          console.error(e);
         }
       },
 
@@ -383,9 +200,14 @@
         if (data.session) {
           this.user = data.session.user;
           const { data: profile } = await this.sb.from('users').select('*').eq('id', this.user.id).single();
-          this.user.username = profile.username;
-          this.show('chat');
-          this.loadFriends();
+          
+          if (profile?.is_admin) {
+            this.user.username = profile.username;
+            this.show('admin');
+            this.loadAllUsers();
+          } else {
+            this.show('login');
+          }
         }
       }
     };
