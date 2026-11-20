@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roger - Push To Talk</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .screen {
+      display: none;
+      padding: 30px;
+      min-height: 600px;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      color: #333;
+    }
+
+    .logout-btn {
+      background: #ff4444;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+
+    .logout-btn:hover {
+      background: #cc0000;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #5568d3;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .toggle-text {
+      text-align: center;
+      margin-top: 20px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .toggle-text a {
+      color: #667eea;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .friend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      transition: background 0.2s;
+    }
+
+    .friend-item:hover {
+      background: #efefef;
+    }
+
+    .friend-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .friend-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #667eea;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .friend-name {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .message-list {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 15px;
+      background: #fafafa;
+    }
+
+    .message-item {
+      margin-bottom: 15px;
+      padding: 12px;
+      background: white;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .message-item.sent {
+      border-left-color: #4caf50;
+    }
+
+    .message-sender {
+      font-weight: 600;
+      color: #667eea;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .message-sender.sent {
+      color: #4caf50;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: #999;
+      margin-top: 5px;
+    }
+
+    .audio-player {
+      width: 100%;
+      height: 36px;
+      margin-top: 8px;
+    }
+
+    .ptt-button {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin: 20px auto;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      user-select: none;
+    }
+
+    .ptt-button:hover {
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+    }
+
+    .ptt-button:active {
+      transform: scale(0.95);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .ptt-button.recording {
+      background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 10px 30px rgba(255, 68, 68, 0.4); }
+      50% { box-shadow: 0 15px 50px rgba(255, 68, 68, 0.8); }
+    }
+
+    .status {
+      text-align: center;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      display: none;
+    }
+
+    .status.show {
+      display: block;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .friend-add-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 2px solid #e0e0e0;
+    }
+
+    .add-friend-input {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .add-friend-input input {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .add-friend-input button {
+      padding: 10px 20px;
+      margin: 0;
+      width: auto;
+    }
+
+    .error {
+      color: #cc0000;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .success {
+      color: #4caf50;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Login Screen -->
+    <div class="screen active" id="loginScreen">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <h1 style="font-size: 36px; color: #667eea; margin-bottom: 10px;">📡</h1>
+        <h1>Roger</h1>
+        <p style="color: #666; margin-top: 10px;">Push-to-Talk for close friends</p>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com">
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+
+      <button onclick="login()">Sign In</button>
+
+      <div class="toggle-text">
+        Don't have an account? <a onclick="toggleAuth()">Sign Up</a>
+      </div>
+
+      <div id="loginError" class="error"></div>
+    </div>
+
+    <!-- Signup Screen -->
+    <div class="screen" id="signupScreen">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <h1 style="font-size: 36px; color: #667eea; margin-bottom: 10px;">📡</h1>
+        <h1>Roger</h1>
+        <p style="color: #666; margin-top: 10px;">Create Account</p>
+      </div>
+
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="signupUsername" placeholder="your_username">
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="signupEmail" placeholder="you@example.com">
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signupPassword" placeholder="••••••••">
+      </div>
+
+      <button onclick="signup()">Create Account</button>
+
+      <div class="toggle-text">
+        Already have an account? <a onclick="toggleAuth()">Sign In</a>
+      </div>
+
+      <div id="signupError" class="error"></div>
+    </div>
+
+    <!-- Main Chat Screen -->
+    <div class="screen" id="chatScreen">
+      <div class="header">
+        <h1>📡 Roger</h1>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <div id="statusMessage" class="status"></div>
+
+      <!-- Friends List -->
+      <div style="margin-bottom: 30px;">
+        <h2 style="font-size: 16px; margin-bottom: 15px; color: #333;">Friends</h2>
+        <div id="friendsList" style="max-height: 150px; overflow-y: auto;"></div>
+
+        <div class="friend-add-section">
+          <h3 style="font-size: 14px; margin-bottom: 10px; color: #666;">Add Friend</h3>
+          <div class="add-friend-input">
+            <input type="email" id="friendEmail" placeholder="friend@example.com">
+            <button onclick="addFriend()">Add</button>
+          </div>
+          <div id="friendError" class="error"></div>
+          <div id="friendSuccess" class="success"></div>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div>
+        <h2 style="font-size: 16px; margin-bottom: 10px; color: #333;">Messages</h2>
+        <div class="message-list" id="messagesList">
+          <p style="color: #999; text-align: center; padding: 20px;">No messages yet. Send one!</p>
+        </div>
+      </div>
+
+      <!-- PTT Button -->
+      <div style="text-align: center; margin-top: 20px;">
+        <p style="color: #666; font-size: 12px; margin-bottom: 10px;">Select a friend and press to talk</p>
+        <button class="ptt-button" id="pttButton" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">
+          🎙️<br>PUSH TO TALK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============ ROGER - SUPABASE CONFIG ============
+    const SUPABASE_URL = 'https://unasloczcdlaicdzqcpc.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_3UmS4S4YDI1E-1T8D4yJNg_1vFtiDFV';
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ============ STATE ============
+    let currentUser = null;
+    let selectedFriendId = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordingStartTime = null;
+
+    // ============ AUTH FUNCTIONS ============
+    async function signup() {
+      const username = document.getElementById('signupUsername').value;
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+      const errorEl = document.getElementById('signupError');
+
+      if (!username || !email || !password) {
+        errorEl.textContent = 'Please fill all fields';
+        return;
+      }
+
+      try {
+        // Create auth user
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        // Create user profile
+        await supabase.from('users').insert({
+          id: data.user.id,
+          email,
+          username
+        });
+
+        errorEl.textContent = '';
+        alert('Account created! Please log in.');
+        toggleAuth();
+      } catch (err) {
+        errorEl.textContent = err.message;
+      }
+    }
+
+    async function login() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const errorEl = document.getElementById('loginError');
+
+      if (!email || !password) {
+        errorEl.textContent = 'Please fill all fields';
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        currentUser = data.user;
+        
+        // Fetch user profile
+        const { data: profile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+
+        currentUser.username = profile.username;
+
+        showScreen('chatScreen');
+        loadFriends();
+        subscribeToMessages();
+        errorEl.textContent = '';
+      } catch (err) {
+        errorEl.textContent = err.message;
+      }
+    }
+
+    async function logout() {
+      await supabase.auth.signOut();
+      currentUser = null;
+      showScreen('loginScreen');
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPassword').value = '';
+    }
+
+    function toggleAuth() {
+      const login = document.getElementById('loginScreen');
+      const signup = document.getElementById('signupScreen');
+      
+      if (login.classList.contains('active')) {
+        login.classList.remove('active');
+        signup.classList.add('active');
+      } else {
+        signup.classList.remove('active');
+        login.classList.add('active');
+      }
+    }
+
+    // ============ FRIEND FUNCTIONS ============
+    async function loadFriends() {
+      try {
+        const { data, error } = await supabase
+          .from('friends')
+          .select('friend_id, users!friends_friend_id_fkey(id, username)')
+          .eq('user_id', currentUser.id);
+
+        if (error) throw error;
+
+        const friendsList = document.getElementById('friendsList');
+        
+        if (data.length === 0) {
+          friendsList.innerHTML = '<p style="color: #999; font-size: 12px;">No friends yet. Add one below!</p>';
+          return;
+        }
+
+        friendsList.innerHTML = data.map(item => `
+          <div class="friend-item" onclick="selectFriend('${item.friend_id}', '${item.users.username}')">
+            <div class="friend-info">
+              <div class="friend-avatar">${item.users.username[0].toUpperCase()}</div>
+              <div class="friend-name">${item.users.username}</div>
+            </div>
+            <span style="font-size: 12px; color: #999;">→</span>
+          </div>
+        `).join('');
+      } catch (err) {
+        showStatus('Error loading friends: ' + err.message, 'error');
+      }
+    }
+
+    function selectFriend(friendId, username) {
+      selectedFriendId = friendId;
+      showStatus(`Selected: ${username}`, 'info');
+    }
+
+    async function addFriend() {
+      const email = document.getElementById('friendEmail').value;
+      const errorEl = document.getElementById('friendError');
+      const successEl = document.getElementById('friendSuccess');
+      errorEl.textContent = '';
+      successEl.textContent = '';
+
+      if (!email) {
+        errorEl.textContent = 'Enter friend email';
+        return;
+      }
+
+      try {
+        // Find friend by email
+        const { data: friend, error: findError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', email)
+          .single();
+
+        if (findError) throw new Error('Friend not found');
+
+        // Add friendship
+        await supabase.from('friends').insert({
+          user_id: currentUser.id,
+          friend_id: friend.id
+        });
+
+        successEl.textContent = 'Friend added!';
+        document.getElementById('friendEmail').value = '';
+        loadFriends();
+      } catch (err) {
+        errorEl.textContent = err.message;
+      }
+    }
+
+    // ============ MESSAGE FUNCTIONS ============
+    async function loadMessages() {
+      if (!selectedFriendId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('messages')
+          .select('*, users!messages_sender_id_fkey(username)')
+          .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${selectedFriendId}),and(sender_id.eq.${selectedFriendId},receiver_id.eq.${currentUser.id})`)
+          .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        const messagesList = document.getElementById('messagesList');
+        
+        if (data.length === 0) {
+          messagesList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No messages yet. Send one!</p>';
+          return;
+        }
+
+        messagesList.innerHTML = data.map(msg => `
+          <div class="message-item ${msg.sender_id === currentUser.id ? 'sent' : ''}">
+            <div class="message-sender ${msg.sender_id === currentUser.id ? 'sent' : ''}">
+              ${msg.users.username}
+            </div>
+            <audio controls class="audio-player" src="${getAudioUrl(msg.audio_url)}"></audio>
+            ${msg.duration ? `<div style="font-size: 11px; color: #999; margin-top: 5px;">${msg.duration}s</div>` : ''}
+            <div class="message-time">${new Date(msg.created_at).toLocaleTimeString()}</div>
+          </div>
+        `).join('');
+
+        messagesList.scrollTop = messagesList.scrollHeight;
+      } catch (err) {
+        showStatus('Error loading messages: ' + err.message, 'error');
+      }
+    }
+
+    function subscribeToMessages() {
+      supabase
+        .channel('messages')
+        .on('postgres_changes', 
+          { event: 'INSERT', schema: 'public', table: 'messages' },
+          (payload) => {
+            if (selectedFriendId === payload.new.sender_id || selectedFriendId === payload.new.receiver_id) {
+              loadMessages();
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    // ============ PTT RECORDING ============
+    async function startRecording() {
+      if (!selectedFriendId) {
+        showStatus('Select a friend first!', 'error');
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        recordingStartTime = Date.now();
+
+        mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+        mediaRecorder.start();
+
+        const pttBtn = document.getElementById('pttButton');
+        pttBtn.classList.add('recording');
+        pttBtn.textContent = '🔴\nRECORDING';
+      } catch (err) {
+        showStatus('Microphone access denied: ' + err.message, 'error');
+      }
+    }
+
+    async function stopRecording() {
+      if (!mediaRecorder) return;
+
+      mediaRecorder.stop();
+      mediaRecorder.onstop = async () => {
+        const pttBtn = document.getElementById('pttButton');
+        pttBtn.classList.remove('recording');
+        pttBtn.textContent = '🎙️\nPUSH TO TALK';
+
+        const duration = Math.round((Date.now() - recordingStartTime) / 1000);
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+
+        try {
+          showStatus('Uploading...', 'info');
+
+          // Upload audio to Supabase Storage
+          const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.webm`;
+          const { data, error: uploadError } = await supabase.storage
+            .from('audio')
+            .upload(fileName, blob);
+
+          if (uploadError) throw uploadError;
+
+          // Create message record
+          await supabase.from('messages').insert({
+            sender_id: currentUser.id,
+            receiver_id: selectedFriendId,
+            audio_url: fileName,
+            duration
+          });
+
+          showStatus('Message sent! ✓', 'success');
+          loadMessages();
+        } catch (err) {
+          showStatus('Upload failed: ' + err.message, 'error');
+        }
+
+        audioChunks = [];
+      };
+    }
+
+    function getAudioUrl(fileName) {
+      return `${SUPABASE_URL}/storage/v1/object/public/audio/${fileName}`;
+    }
+
+    // ============ UI HELPERS ============
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    function showStatus(message, type) {
+      const statusEl = document.getElementById('statusMessage');
+      statusEl.textContent = message;
+      statusEl.className = `status show ${type}`;
+      setTimeout(() => statusEl.classList.remove('show'), 3000);
+    }
+
+    // ============ STARTUP ============
+    async function checkAuth() {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        currentUser = data.session.user;
+        const { data: profile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+        currentUser.username = profile.username;
+        showScreen('chatScreen');
+        loadFriends();
+        subscribeToMessages();
+      }
+    }
+
+    checkAuth();
+  </script>
+</body>
+</html>
