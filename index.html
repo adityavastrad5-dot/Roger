@@ -149,6 +149,7 @@
       border-radius: 12px;
       margin-bottom: 12px;
       transition: background 0.2s;
+      cursor: pointer;
     }
 
     .friend-item:hover {
@@ -461,7 +462,6 @@
       }
 
       try {
-        // Create auth user
         const { data, error } = await supabase.auth.signUp({
           email,
           password
@@ -469,7 +469,6 @@
 
         if (error) throw error;
 
-        // Create user profile
         await supabase.from('users').insert({
           id: data.user.id,
           email,
@@ -504,7 +503,6 @@
 
         currentUser = data.user;
         
-        // Fetch user profile
         const { data: profile } = await supabase
           .from('users')
           .select('*')
@@ -592,7 +590,6 @@
       }
 
       try {
-        // Find friend by email
         const { data: friend, error: findError } = await supabase
           .from('users')
           .select('id')
@@ -601,7 +598,6 @@
 
         if (findError) throw new Error('Friend not found');
 
-        // Add friendship
         await supabase.from('friends').insert({
           user_id: currentUser.id,
           friend_id: friend.id
@@ -705,7 +701,6 @@
         try {
           showStatus('Uploading...', 'info');
 
-          // Upload audio to Supabase Storage
           const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.webm`;
           const { data, error: uploadError } = await supabase.storage
             .from('audio')
@@ -713,7 +708,6 @@
 
           if (uploadError) throw uploadError;
 
-          // Create message record
           await supabase.from('messages').insert({
             sender_id: currentUser.id,
             receiver_id: selectedFriendId,
