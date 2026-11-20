@@ -117,9 +117,21 @@
           if (error) throw error;
 
           this.user = data.user;
-          const { data: profile } = await this.sb.from('users').select('*').eq('id', this.user.id).single();
           
-          if (!profile?.is_admin) {
+          // Get user profile
+          const { data: profile, error: profileError } = await this.sb
+            .from('users')
+            .select('*')
+            .eq('id', this.user.id)
+            .single();
+          
+          if (profileError) throw profileError;
+          if (!profile) throw new Error('User profile not found');
+          
+          // Check if admin (handle both true boolean and string 'true')
+          const isAdmin = profile.is_admin === true || profile.is_admin === 'true';
+          
+          if (!isAdmin) {
             throw new Error('Not an admin account');
           }
 
@@ -128,6 +140,7 @@
           this.loadAllUsers();
         } catch (e) {
           err.textContent = e.message;
+          console.error('Login error:', e);
         }
       },
 
