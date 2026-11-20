@@ -8,7 +8,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
     .container { width: 100%; max-width: 500px; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
-    .screen { display: none; padding: 30px; min-height: 600px; }
+    .screen { display: none; padding: 30px; min-height: 600px; overflow-y: auto; }
     .screen.active { display: block; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
     h1 { font-size: 24px; color: #333; }
@@ -16,13 +16,15 @@
     button { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; }
     button:hover { background: #5568d3; }
     .link { color: #667eea; cursor: pointer; text-decoration: underline; font-size: 14px; }
-    .error { color: red; font-size: 12px; }
-    .user-item { padding: 12px; background: #f5f5f5; border-radius: 8px; margin: 8px 0; }
-    .btn-small { width: auto; padding: 6px 12px; font-size: 12px; margin: 0 5px; }
+    .error { color: red; font-size: 12px; margin-top: 5px; }
+    .success { color: green; font-size: 12px; margin-top: 5px; }
+    .user-item { padding: 12px; background: #f5f5f5; border-radius: 8px; margin: 8px 0; border-left: 4px solid #667eea; }
     h2 { font-size: 16px; margin: 20px 0 10px; color: #333; }
     .password-container { position: relative; }
     .password-container input { padding-right: 40px; }
     .show-pwd-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #667eea; cursor: pointer; font-size: 18px; width: auto; padding: 0; margin: 0; }
+    .copy-btn { background: #4caf50; padding: 6px 12px; width: auto; margin-left: 5px; font-size: 12px; }
+    .copy-btn:hover { background: #45a049; }
   </style>
 </head>
 <body>
@@ -33,17 +35,14 @@
         <h1 style="font-size: 36px; margin-bottom: 10px;">📡 Roger</h1>
         <p style="color: #666;">Admin Login</p>
       </div>
-      <label>Email</label>
-      <input type="email" id="loginEmail" placeholder="admin@roger.app">
+      <label>Username</label>
+      <input type="text" id="loginUsername" placeholder="admin">
       <label>Password</label>
       <div class="password-container">
         <input type="password" id="loginPassword" placeholder="••••••••">
         <button class="show-pwd-btn" onclick="app.togglePassword('loginPassword')" type="button">👁️</button>
       </div>
       <button onclick="app.login()">Sign In</button>
-      <p style="text-align: center; margin-top: 15px; font-size: 14px;">
-        <span class="link" onclick="app.show('reset')">Reset Password</span>
-      </p>
       <div id="loginError" class="error"></div>
     </div>
 
@@ -59,19 +58,98 @@
       <div>
         <label>Username</label>
         <input type="text" id="newUsername" placeholder="username">
-        <label>Email</label>
-        <input type="email" id="newEmail" placeholder="user@example.com">
         <label>Password</label>
-        <input type="password" id="newPassword" placeholder="••••••••">
+        <div class="password-container">
+          <input type="password" id="newPassword" placeholder="••••••••">
+          <button class="show-pwd-btn" onclick="app.togglePassword('newPassword')" type="button">👁️</button>
+        </div>
         <button onclick="app.createUser()">Create User</button>
         <div id="createError" class="error"></div>
+        <div id="createSuccess" class="success"></div>
+      </div>
+
+      <!-- User ID Display -->
+      <div id="userIdDisplay" style="display: none; margin-top: 20px; padding: 15px; background: #d4edda; border-radius: 8px; border-left: 4px solid #4caf50;">
+        <p style="font-size: 12px; color: #666; margin-bottom: 10px;">User created successfully! Share these credentials:</p>
+        <div style="margin-bottom: 10px;">
+          <label style="font-size: 12px; color: #333;">Username:</label>
+          <div style="display: flex; gap: 5px; align-items: center;">
+            <input type="text" id="displayUsername" readonly style="margin: 0; flex: 1;">
+            <button class="copy-btn" onclick="app.copyToClipboard('displayUsername')">Copy</button>
+          </div>
+        </div>
+        <div>
+          <label style="font-size: 12px; color: #333;">Password:</label>
+          <div style="display: flex; gap: 5px; align-items: center;">
+            <input type="text" id="displayPassword" readonly style="margin: 0; flex: 1;">
+            <button class="copy-btn" onclick="app.copyToClipboard('displayPassword')">Copy</button>
+          </div>
+        </div>
       </div>
 
       <!-- All Users -->
       <h2 style="margin-top: 30px;">All Users</h2>
-      <div id="usersList" style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; max-height: 400px; overflow-y: auto;">
+      <div id="usersList" style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; max-height: 350px; overflow-y: auto;">
         <p style="color: #999;">Loading...</p>
       </div>
+    </div>
+
+    <!-- Change Password Screen -->
+    <div class="screen" id="changePassword">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 36px; margin-bottom: 10px;">📡 Roger</h1>
+        <p style="color: #666;">Change Password</p>
+      </div>
+      <label>Current Password</label>
+      <div class="password-container">
+        <input type="password" id="currentPassword" placeholder="••••••••">
+        <button class="show-pwd-btn" onclick="app.togglePassword('currentPassword')" type="button">👁️</button>
+      </div>
+      <label>New Password</label>
+      <div class="password-container">
+        <input type="password" id="newPwd" placeholder="••••••••">
+        <button class="show-pwd-btn" onclick="app.togglePassword('newPwd')" type="button">👁️</button>
+      </div>
+      <label>Confirm New Password</label>
+      <div class="password-container">
+        <input type="password" id="confirmPwd" placeholder="••••••••">
+        <button class="show-pwd-btn" onclick="app.togglePassword('confirmPwd')" type="button">👁️</button>
+      </div>
+      <button onclick="app.changePassword()">Change Password</button>
+      <p style="text-align: center; margin-top: 15px; font-size: 14px;">
+        <span class="link" onclick="app.show('userChat')">Back</span>
+      </p>
+      <div id="changePasswordError" class="error"></div>
+    </div>
+
+    <!-- User Chat Screen -->
+    <div class="screen" id="userChat">
+      <div class="header">
+        <h1>📡 Roger</h1>
+        <div>
+          <button style="background: #4caf50; padding: 8px 12px; width: auto; margin-right: 5px;" onclick="app.show('changePassword')">Change Password</button>
+          <button style="background: #ff4444; padding: 8px 12px; width: auto;" onclick="app.logout()">Logout</button>
+        </div>
+      </div>
+
+      <h2>Friends</h2>
+      <div id="friendsList" style="max-height: 150px; overflow-y: auto;"></div>
+
+      <div style="margin: 20px 0; padding: 15px; border-top: 2px solid #e0e0e0;">
+        <label>Add Friend Username</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="friendUsername" placeholder="username" style="flex: 1; margin: 0;">
+          <button style="width: auto; margin: 0;" onclick="app.addFriend()">Add</button>
+        </div>
+        <div id="friendError" class="error"></div>
+      </div>
+
+      <h2>Messages</h2>
+      <div id="messagesList" style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; max-height: 300px; overflow-y: auto;">
+        <p style="color: #999;">No messages</p>
+      </div>
+
+      <button class="ptt-button" id="pttBtn" style="width: 120px; height: 120px; border-radius: 50%; background: #667eea; color: white; border: none; font-weight: bold; cursor: pointer; margin: 20px auto; display: flex; align-items: center; justify-content: center;" onmousedown="app.recordStart()" onmouseup="app.recordStop()">🎙️<br>PUSH</button>
     </div>
   </div>
 
@@ -82,6 +160,9 @@
       sbKey: 'sb_publishable_3UmS4S4YDI1E-1T8D4yJNg_1vFtiDFV',
       sb: null,
       user: null,
+      selectedFriendId: null,
+      recorder: null,
+      chunks: [],
 
       init() {
         this.sb = window.supabase.createClient(this.sbUrl, this.sbKey);
@@ -95,52 +176,59 @@
 
       togglePassword(fieldId) {
         const field = document.getElementById(fieldId);
-        if (field.type === 'password') {
-          field.type = 'text';
-        } else {
-          field.type = 'password';
-        }
+        field.type = field.type === 'password' ? 'text' : 'password';
+      },
+
+      copyToClipboard(fieldId) {
+        const field = document.getElementById(fieldId);
+        field.select();
+        document.execCommand('copy');
+        alert('Copied to clipboard!');
       },
 
       async login() {
-        const email = document.getElementById('loginEmail').value;
+        const username = document.getElementById('loginUsername').value;
         const password = document.getElementById('loginPassword').value;
         const err = document.getElementById('loginError');
 
-        if (!email || !password) {
+        if (!username || !password) {
           err.textContent = 'Fill all fields';
           return;
         }
 
         try {
-          const { data, error } = await this.sb.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-
-          this.user = data.user;
-          
-          // Get user profile
-          const { data: profile, error: profileError } = await this.sb
+          // Find user by username
+          const { data: user, error: userError } = await this.sb
             .from('users')
             .select('*')
-            .eq('id', this.user.id)
+            .eq('username', username)
             .single();
-          
-          if (profileError) throw profileError;
-          if (!profile) throw new Error('User profile not found');
-          
-          // Check if admin (handle both true boolean and string 'true')
-          const isAdmin = profile.is_admin === true || profile.is_admin === 'true';
-          
-          if (!isAdmin) {
-            throw new Error('Not an admin account');
+
+          if (userError || !user) {
+            throw new Error('User not found');
           }
 
-          this.user.username = profile.username;
-          this.show('admin');
-          this.loadAllUsers();
+          // Check password
+          if (user.password !== password) {
+            throw new Error('Invalid password');
+          }
+
+          // Set current user
+          this.user = {
+            id: user.id,
+            username: user.username,
+            is_admin: user.is_admin
+          };
+
+          if (this.user.is_admin) {
+            this.show('admin');
+            this.loadAllUsers();
+          } else {
+            this.show('userChat');
+            this.loadFriends();
+          }
         } catch (e) {
           err.textContent = e.message;
-          console.error('Login error:', e);
         }
       },
 
@@ -148,38 +236,96 @@
         await this.sb.auth.signOut();
         this.user = null;
         this.show('login');
-        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginUsername').value = '';
         document.getElementById('loginPassword').value = '';
       },
 
       async createUser() {
         const username = document.getElementById('newUsername').value;
-        const email = document.getElementById('newEmail').value;
         const password = document.getElementById('newPassword').value;
         const err = document.getElementById('createError');
+        const success = document.getElementById('createSuccess');
 
-        if (!username || !email || !password) {
+        if (!username || !password) {
           err.textContent = 'Fill all fields';
           return;
         }
 
         try {
-          const { data, error } = await this.sb.auth.signUp({ email, password });
-          if (error) throw error;
+          // Generate random user ID
+          const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+          
+          // Insert user directly to database
+          const { data: insertData, error: insertError } = await this.sb.from('users').insert({
+            id: userId,
+            username: username,
+            is_admin: false,
+            password: password
+          }).select();
 
-          await this.sb.from('users').insert({
-            id: data.user.id,
-            email,
-            username,
-            is_admin: false
-          });
+          if (insertError) throw insertError;
 
           err.textContent = '';
-          alert('User created: ' + email);
+          success.textContent = '';
+          
+          // Show credentials to admin
+          document.getElementById('displayUsername').value = username;
+          document.getElementById('displayPassword').value = password;
+          document.getElementById('userIdDisplay').style.display = 'block';
+
           document.getElementById('newUsername').value = '';
-          document.getElementById('newEmail').value = '';
           document.getElementById('newPassword').value = '';
-          this.loadAllUsers();
+          
+          setTimeout(() => {
+            this.loadAllUsers();
+          }, 1000);
+        } catch (e) {
+          err.textContent = 'Error: ' + e.message;
+        }
+      },
+
+      async changePassword() {
+        const current = document.getElementById('currentPassword').value;
+        const newPwd = document.getElementById('newPwd').value;
+        const confirm = document.getElementById('confirmPwd').value;
+        const err = document.getElementById('changePasswordError');
+
+        if (!current || !newPwd || !confirm) {
+          err.textContent = 'Fill all fields';
+          return;
+        }
+
+        if (newPwd !== confirm) {
+          err.textContent = 'Passwords do not match';
+          return;
+        }
+
+        try {
+          // Get current user from database
+          const { data: userData } = await this.sb
+            .from('users')
+            .select('*')
+            .eq('id', this.user.id)
+            .single();
+
+          // Check if current password matches
+          if (userData.password !== current) {
+            throw new Error('Current password is incorrect');
+          }
+
+          // Update password in database
+          const { error } = await this.sb
+            .from('users')
+            .update({ password: newPwd })
+            .eq('id', this.user.id);
+
+          if (error) throw error;
+
+          alert('Password changed successfully!');
+          this.show('userChat');
+          document.getElementById('currentPassword').value = '';
+          document.getElementById('newPwd').value = '';
+          document.getElementById('confirmPwd').value = '';
         } catch (e) {
           err.textContent = e.message;
         }
@@ -198,9 +344,7 @@
           list.innerHTML = data.map(u => `
             <div class="user-item">
               <div style="font-weight: 600;">${u.username}</div>
-              <div style="font-size: 12px; color: #666;">${u.email}</div>
               <div style="font-size: 11px; color: #999;">Admin: ${u.is_admin ? 'Yes' : 'No'}</div>
-              <div style="font-size: 10px; color: #bbb; margin-top: 5px;">ID: ${u.id.substring(0, 8)}...</div>
             </div>
           `).join('');
         } catch (e) {
@@ -208,20 +352,135 @@
         }
       },
 
-      async checkAuth() {
-        const { data } = await this.sb.auth.getSession();
-        if (data.session) {
-          this.user = data.session.user;
-          const { data: profile } = await this.sb.from('users').select('*').eq('id', this.user.id).single();
-          
-          if (profile?.is_admin) {
-            this.user.username = profile.username;
-            this.show('admin');
-            this.loadAllUsers();
-          } else {
-            this.show('login');
+      async loadFriends() {
+        try {
+          const { data } = await this.sb.from('friends').select('friend_id, users!friends_friend_id_fkey(username)').eq('user_id', this.user.id);
+
+          const list = document.getElementById('friendsList');
+          if (!data || data.length === 0) {
+            list.innerHTML = '<p style="color: #999; font-size: 12px;">No friends yet</p>';
+            return;
           }
+
+          list.innerHTML = data.map(f => `
+            <div class="user-item" onclick="app.selectFriend('${f.friend_id}', '${f.users.username}')" style="cursor: pointer;">
+              ${f.users.username}
+            </div>
+          `).join('');
+        } catch (e) {
+          console.error(e);
         }
+      },
+
+      selectFriend(id, name) {
+        this.selectedFriendId = id;
+        alert('Selected: ' + name);
+        this.loadMessages();
+      },
+
+      async addFriend() {
+        const username = document.getElementById('friendUsername').value;
+        const err = document.getElementById('friendError');
+
+        if (!username) {
+          err.textContent = 'Enter username';
+          return;
+        }
+
+        try {
+          const { data: friend } = await this.sb.from('users').select('id').eq('username', username).single();
+          if (!friend) throw new Error('User not found');
+
+          await this.sb.from('friends').insert({
+            user_id: this.user.id,
+            friend_id: friend.id
+          });
+
+          document.getElementById('friendUsername').value = '';
+          this.loadFriends();
+        } catch (e) {
+          err.textContent = e.message;
+        }
+      },
+
+      async loadMessages() {
+        if (!this.selectedFriendId) return;
+
+        try {
+          const { data } = await this.sb.from('messages').select('*, users!messages_sender_id_fkey(username)').or(`and(sender_id.eq.${this.user.id},receiver_id.eq.${this.selectedFriendId}),and(sender_id.eq.${this.selectedFriendId},receiver_id.eq.${this.user.id})`).order('created_at', { ascending: true });
+
+          const list = document.getElementById('messagesList');
+          if (!data || data.length === 0) {
+            list.innerHTML = '<p style="color: #999;">No messages</p>';
+            return;
+          }
+
+          list.innerHTML = data.map(m => `
+            <div style="margin-bottom: 10px; padding: 10px; background: #f5f5f5; border-radius: 8px;">
+              <div style="font-size: 12px; color: #667eea;">${m.users.username}</div>
+              <audio controls style="width: 100%; height: 32px; margin-top: 5px;" src="${this.sbUrl}/storage/v1/object/public/audio/${m.audio_url}"></audio>
+            </div>
+          `).join('');
+
+          list.scrollTop = list.scrollHeight;
+        } catch (e) {
+          console.error(e);
+        }
+      },
+
+      async recordStart() {
+        if (!this.selectedFriendId) {
+          alert('Select friend first');
+          return;
+        }
+
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          this.recorder = new MediaRecorder(stream);
+          this.chunks = [];
+          this.recorder.ondataavailable = (e) => this.chunks.push(e.data);
+          this.recorder.start();
+
+          document.getElementById('pttBtn').style.background = '#ff4444';
+          document.getElementById('pttBtn').textContent = '🔴\nSTOP';
+        } catch (e) {
+          alert('Mic access denied');
+        }
+      },
+
+      async recordStop() {
+        if (!this.recorder) return;
+
+        this.recorder.stop();
+        this.recorder.onstop = async () => {
+          document.getElementById('pttBtn').style.background = '#667eea';
+          document.getElementById('pttBtn').textContent = '🎙️\nPUSH';
+
+          const blob = new Blob(this.chunks, { type: 'audio/webm' });
+          const fileName = `${Date.now()}.webm`;
+
+          try {
+            await this.sb.storage.from('audio').upload(fileName, blob);
+
+            await this.sb.from('messages').insert({
+              sender_id: this.user.id,
+              receiver_id: this.selectedFriendId,
+              audio_url: fileName,
+              duration: Math.round(this.chunks.length / 10)
+            });
+
+            this.loadMessages();
+          } catch (e) {
+            alert('Upload failed: ' + e.message);
+          }
+
+          this.chunks = [];
+        };
+      },
+
+      async checkAuth() {
+        // No persistent auth - users login each time
+        // This function is kept for compatibility but does nothing
       }
     };
 
